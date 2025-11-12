@@ -1,16 +1,11 @@
 import { Graphics } from "pixi.js";
 import { Bodies, Composite, Engine, type Body } from "matter-js";
-
-interface PegConfig {
-  x: number;
-  y: number;
-  r: number;
-  color: number;
-}
+import { config } from "../config";
 
 interface Props {
-  config: PegConfig;
   engine: Engine;
+  x: number;
+  y: number;
 }
 
 export class Peg {
@@ -18,14 +13,16 @@ export class Peg {
   rigidBody: Body;
   engine: Engine;
 
-  constructor({ config, engine }: Props) {
-    const { x, y, r, color } = config;
+  constructor({ x, y, engine }: Props) {
+    this.graphics = new Graphics()
+      .circle(x, y, config.pegs.radius)
+      .fill(config.pegs.fillColor);
 
-    this.graphics = new Graphics().circle(x, y, r).fill(color);
-
-    this.rigidBody = Bodies.circle(x, y, r, {
+    this.rigidBody = Bodies.circle(x, y, config.pegs.radius, {
       isStatic: true,
     });
+
+    this.rigidBody.label = config.pegs.label;
 
     this.engine = engine;
 
