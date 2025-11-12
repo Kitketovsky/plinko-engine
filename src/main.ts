@@ -1,7 +1,10 @@
-import { Application, Container, Graphics } from "pixi.js";
+import { Application } from "pixi.js";
+import { Engine } from "matter-js";
 import { initDevtools } from "@pixi/devtools";
+import { PegBoard } from "./peg-board";
+import { Ball } from "./ball";
 
-const config = {
+const pegBoardConfig = {
   rows: 6,
   gapY: 40,
   gapX: 50,
@@ -16,34 +19,27 @@ const config = {
 
   document.getElementById("pixi-container")!.appendChild(app.canvas);
 
-  const plinkoContainer = new Container();
+  const engine = Engine.create();
 
-  const width = config.radius * 2 * config.rows + config.gapX * (config.rows - 1);
-  const height = config.radius * 2 * config.rows + config.gapY * (config.rows - 1);
+  const board = new PegBoard({
+    config: pegBoardConfig,
+    app,
+    engine,
+  });
 
+  board.render();
 
-  for (let i = 1; i <= config.rows; i++) {
-    for (let j = 1; j <= i; j++) {
-      // i - row number
-      // j - circle number in the row
+  const ball = new Ball({
+    config: { x: app.screen.width / 2, y: 10, r: 10, color: 0x000000 },
+    app,
+    engine,
+  });
 
-      const x = width / 2 + (j - (i + 1) / 2) * (20 + config.gapX) + config.radius;
-      const y = config.radius + (i - 1) * (20 + config.gapY);
+  ball.launch();
 
-      const graphics = new Graphics().circle(x, y, config.radius).fill(config.fill);
-      plinkoContainer.addChild(graphics);
-    }
-  }
-
-  plinkoContainer.position.set((app.screen.width - width) / 2, (app.screen.height - height) / 2);
-
-  const border = new Graphics()
-    .rect(-10, -10, plinkoContainer.width + 20, plinkoContainer.height + 20)
-    .stroke({ width: 2, color: 0x000000 });
-
-  plinkoContainer.addChild(border);
-
-  app.stage.addChild(plinkoContainer);
+  app.ticker.add(() => {
+    Engine.update(engine, 16);
+  });
 
   initDevtools({ app });
 })();

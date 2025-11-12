@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@pixi/devtools": "^2.0.1",
+    "matter-js": "^0.20.0",
     "pixi.js": "^8.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/matter-js": "^0.20.2",
     "eslint": "^9.21.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
