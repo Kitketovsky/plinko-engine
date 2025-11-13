@@ -23,4 +23,16 @@ export const config = {
       density: 1,
     },
   },
+  slots: {
+    wall: {
+      height: 100,
+      width: 10,
+      label: "SlotWall",
+    },
+    sensor: {
+      height: 2,
+      label: "SlotSensor",
+    },
+    slotAmount: 7,
+  },
 };

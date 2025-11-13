@@ -5,6 +5,7 @@ import { Ball } from "./core/ball";
 import { Board } from "./core/board";
 import gsap from "gsap";
 import { PixiPlugin } from "gsap/PixiPlugin";
+import { Slots } from "./core/slots";
 
 (async () => {
   const app = new Application();
@@ -25,14 +26,16 @@ import { PixiPlugin } from "gsap/PixiPlugin";
 
   board.render();
 
-  const ball = new Ball({
-    x: app.screen.width / 2,
-    y: 10,
-    app,
-    engine,
-  });
+  setInterval(() => {
+    new Ball({
+      x: app.screen.width / 2 + Math.random() * 100 - 50,
+      y: 10,
+      app,
+      engine,
+    }).launch();
+  }, 1000);
 
-  ball.launch();
+  new Slots({ app, engine });
 
   app.ticker.add(() => {
     Engine.update(engine);

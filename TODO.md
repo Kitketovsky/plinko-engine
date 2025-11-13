@@ -7,11 +7,11 @@
 
 ## Pegs
 
-- [] Make peg bounce / jiggle on collision to make pinball like effect
+- [x] Make peg bounce / jiggle on collision to make pinball like effect
 
 ## Slots
 
-- [] Render slots
+- [x] Render slots
 - [] Determine if a balls falls to a certain slot
 - [] Make EventEmitter to emit 'drop' event
 
