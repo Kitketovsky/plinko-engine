@@ -2,7 +2,7 @@ import { Application, Renderer } from "pixi.js";
 import { Peg } from "./peg";
 import Matter, { Engine, Events } from "matter-js";
 import { sound } from "@pixi/sound";
-
+import gsap from "gsap";
 import popSoundSource from "./../assets/sounds/pop.mp3";
 import { config } from "../config";
 
@@ -76,22 +76,44 @@ export class Board {
           for (const pair of pairs) {
             const labels = [pair.bodyA.label, pair.bodyB.label];
 
+            const isBallAndPegCollision =
+              labels.includes(config.ball.label) &&
+              labels.includes(config.pegs.label);
+
+            if (!isBallAndPegCollision) {
+              continue;
+            }
+
             const relativeVelocity = Matter.Vector.sub(
               pair.bodyA.velocity,
               pair.bodyB.velocity
             );
 
+            // Sound
             const speed = Matter.Vector.magnitude(relativeVelocity);
-
             const maxSpeed = 10;
-
             const volume = Math.min(speed / maxSpeed, 1);
 
-            if (
-              labels.includes(config.ball.label) &&
-              labels.includes(config.pegs.label)
-            ) {
-              popSound.play({ volume });
+            popSound.play({ volume });
+
+            // Peg animation
+            const pegBody =
+              labels[0] === config.pegs.label ? pair.bodyA : pair.bodyB;
+
+            const pegGraphics = (pegBody as any).graphics;
+
+            if (pegGraphics) {
+              gsap.to(pegGraphics.scale, {
+                x: 1.4,
+                y: 1.4,
+                duration: 0.1,
+                ease: "power2.out",
+                yoyo: true,
+                repeat: 1,
+                onComplete: () => {
+                  pegGraphics.scale.set(1);
+                },
+              });
             }
           }
         });

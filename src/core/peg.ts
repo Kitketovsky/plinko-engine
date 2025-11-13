@@ -18,11 +18,18 @@ export class Peg {
       .circle(x, y, config.pegs.radius)
       .fill(config.pegs.fillColor);
 
+    // Set pivot to the center so scaling works correctly
+    this.graphics.pivot.set(x, y);
+    this.graphics.position.set(x, y);
+
     this.rigidBody = Bodies.circle(x, y, config.pegs.radius, {
       isStatic: true,
     });
 
     this.rigidBody.label = config.pegs.label;
+
+    // Store reference to graphics for animations
+    (this.rigidBody as any).graphics = this.graphics;
 
     this.engine = engine;
 

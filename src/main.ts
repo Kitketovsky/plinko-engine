@@ -3,9 +3,14 @@ import { Engine } from "matter-js";
 import { initDevtools } from "@pixi/devtools";
 import { Ball } from "./core/ball";
 import { Board } from "./core/board";
+import gsap from "gsap";
+import { PixiPlugin } from "gsap/PixiPlugin";
 
 (async () => {
   const app = new Application();
+
+  gsap.registerPlugin(PixiPlugin);
+  PixiPlugin.registerPIXI(window.PIXI);
 
   await app.init({ background: "white", resizeTo: window });
 
