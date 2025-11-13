@@ -2,8 +2,8 @@
 
 ## Sound
 
-- [] Add sound when the ball hits a peg
-- [] Higher velocity -> louder the sound
+- [x] Add sound when the ball hits a peg
+- [x] Higher velocity -> louder the sound
 
 ## Pegs
 

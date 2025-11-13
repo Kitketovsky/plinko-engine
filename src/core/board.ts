@@ -1,9 +1,9 @@
 import { Application, Renderer } from "pixi.js";
 import { Peg } from "./peg";
-import { Engine, Events } from "matter-js";
+import Matter, { Engine, Events } from "matter-js";
 import { sound } from "@pixi/sound";
 
-import popSoundSource from "./assets/sounds/pop.mp3";
+import popSoundSource from "./../assets/sounds/pop.mp3";
 import { config } from "../config";
 
 interface Props {
@@ -76,11 +76,22 @@ export class Board {
           for (const pair of pairs) {
             const labels = [pair.bodyA.label, pair.bodyB.label];
 
+            const relativeVelocity = Matter.Vector.sub(
+              pair.bodyA.velocity,
+              pair.bodyB.velocity
+            );
+
+            const speed = Matter.Vector.magnitude(relativeVelocity);
+
+            const maxSpeed = 10;
+
+            const volume = Math.min(speed / maxSpeed, 1);
+
             if (
               labels.includes(config.ball.label) &&
               labels.includes(config.pegs.label)
             ) {
-              popSound.play({ volume: 0.5 });
+              popSound.play({ volume });
             }
           }
         });
