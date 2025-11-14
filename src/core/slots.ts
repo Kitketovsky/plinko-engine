@@ -10,12 +10,14 @@ interface Props {
 export class Slots {
   app: Application<Renderer>;
   engine: Matter.Engine;
+  slotsMultiplierData: Map<number, number>;
 
   slotGap: number;
 
   constructor({ app, engine }: Props) {
     this.app = app;
     this.engine = engine;
+    this.slotsMultiplierData = new Map<number, number>();
 
     if (config.slots.slotAmount % 2 !== 1) {
       throw new Error("Amount of slots must be odd");
@@ -87,7 +89,10 @@ export class Slots {
       isStatic: true,
     });
 
-    slotSensorBody.multiplier = config.slots.multipliers[index];
+    this.slotsMultiplierData.set(
+      slotSensorBody.id,
+      config.slots.multipliers[index]
+    );
 
     Composite.add(this.engine.world, slotSensorBody);
   }
@@ -150,7 +155,13 @@ export class Slots {
             ? pair.bodyA
             : pair.bodyB;
 
-        console.log("multiplier", sensor.multiplier);
+        const multiplier = this.slotsMultiplierData.get(sensor.id);
+
+        if (!multiplier) {
+          throw new Error(`No multiplier has been found in body ${sensor.id}`);
+        }
+
+        console.log("body", sensor.id, "multiplier", multiplier);
       }
     });
   }
