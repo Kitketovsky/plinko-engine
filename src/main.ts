@@ -26,14 +26,14 @@ import { Slots } from "./core/slots";
 
   board.render();
 
-  setInterval(() => {
-    new Ball({
-      x: app.screen.width / 2 + Math.random() * 100 - 50,
-      y: 10,
-      app,
-      engine,
-    }).launch();
-  }, 2000);
+  // setInterval(() => {
+  //   new Ball({
+  //     x: app.screen.width / 2 + Math.random() * 100 - 50,
+  //     y: 10,
+  //     app,
+  //     engine,
+  //   }).launch();
+  // }, 2000);
 
   new Slots({ app, engine });
 

@@ -13,7 +13,7 @@
 
 - [x] Render slots
 - [x] Determine if a balls falls to a certain slot
-- [] Render multiplier value in the center of a slot
+- [x] Render multiplier text in the center of a slot
 
 ## Mechanics
 

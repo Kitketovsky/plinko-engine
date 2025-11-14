@@ -1,5 +1,5 @@
 import Matter, { Bodies, Composite } from "matter-js";
-import { Application, Graphics, Renderer } from "pixi.js";
+import { Application, Graphics, Renderer, Text } from "pixi.js";
 import { config } from "../config";
 
 interface Props {
@@ -11,6 +11,8 @@ export class Slots {
   app: Application<Renderer>;
   engine: Matter.Engine;
 
+  slotGap: number;
+
   constructor({ app, engine }: Props) {
     this.app = app;
     this.engine = engine;
@@ -19,35 +21,30 @@ export class Slots {
       throw new Error("Amount of slots must be odd");
     }
 
+    const { wall, slotAmount } = config.slots;
+
+    this.slotGap =
+      (this.app.screen.width - wall.width / 2 - slotAmount + 1 * wall.width) /
+      slotAmount;
+
     this.createBottomBoundary();
     this.createSlots();
     this.listenForBallDrops();
   }
 
   createSlots() {
-    const { wall, slotAmount } = config.slots;
-
-    const slotWallGap =
-      (this.app.screen.width - wall.width / 2 - slotAmount + 1 * wall.width) /
-      slotAmount;
-
     for (let i = 0; i <= config.slots.slotAmount; i++) {
-      this.createSlotWall({ index: i, slotWallGap });
-      this.createSlotSensor({ index: i, slotWallGap });
+      this.createSlotWall(i);
+      this.createSlotSensor(i);
+      this.renderMultiplierText(i);
     }
   }
 
-  createSlotWall({
-    index,
-    slotWallGap,
-  }: {
-    index: number;
-    slotWallGap: number;
-  }) {
+  createSlotWall(index: number) {
     // WARN: Matter.Bodies.rectangle expects center x, y
     // but Graphics on default mode uses top-left x, y
 
-    const x = index * slotWallGap;
+    const x = index * this.slotGap;
     const y = this.app.screen.height - config.slots.wall.height / 2;
     const w = config.slots.wall.width;
     const h = config.slots.wall.height;
@@ -71,24 +68,16 @@ export class Slots {
     Composite.add(this.engine.world, slotWallBody);
   }
 
-  createSlotSensor({
-    index,
-    slotWallGap,
-  }: {
-    index: number;
-    slotWallGap: number;
-  }) {
+  createSlotSensor(index: number) {
     const x =
-      index * slotWallGap + config.slots.wall.width / 2 + slotWallGap / 2;
+      index * this.slotGap + config.slots.wall.width / 2 + this.slotGap / 2;
     const y = this.app.screen.height - config.slots.wall.height + 5;
-    const w = slotWallGap;
+    const w = this.slotGap;
     const h = 2;
 
     const slotSensorGraphics = new Graphics({
-      pivot: { x: slotWallGap / 2, y: 1 },
-    })
-      .rect(x, y, w, h)
-      .stroke(0xff0000);
+      pivot: { x: this.slotGap / 2, y: 1 },
+    }).rect(x, y, w, h);
 
     this.app.stage.addChild(slotSensorGraphics);
 
@@ -101,6 +90,25 @@ export class Slots {
     slotSensorBody.multiplier = config.slots.multipliers[index];
 
     Composite.add(this.engine.world, slotSensorBody);
+  }
+
+  renderMultiplierText(index: number) {
+    const multiplierText = new Text({
+      text: `x${config.slots.multipliers[index]}`,
+      anchor: 0.5,
+      resolution: 2,
+      style: {
+        fontSize: 16,
+      },
+    });
+
+    const x = index * this.slotGap + this.slotGap / 2;
+
+    const y = this.app.screen.height - (config.slots.wall.height / 100) * 60;
+
+    multiplierText.position.set(x, y);
+
+    this.app.stage.addChild(multiplierText);
   }
 
   createBottomBoundary() {
