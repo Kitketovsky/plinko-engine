@@ -33,7 +33,7 @@ import { Slots } from "./core/slots";
       app,
       engine,
     }).launch();
-  }, 1000);
+  }, 2000);
 
   new Slots({ app, engine });
 

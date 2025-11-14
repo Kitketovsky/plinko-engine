@@ -15,8 +15,13 @@ export class Slots {
     this.app = app;
     this.engine = engine;
 
+    if (config.slots.slotAmount % 2 !== 1) {
+      throw new Error("Amount of slots must be odd");
+    }
+
     this.createBottomBoundary();
     this.createSlots();
+    this.listenForBallDrops();
   }
 
   createSlots() {
@@ -88,10 +93,12 @@ export class Slots {
     this.app.stage.addChild(slotSensorGraphics);
 
     const slotSensorBody = Bodies.rectangle(x, y, w, h, {
-      label: "SlotSensor",
+      label: config.slots.sensor.label,
       isSensor: true,
       isStatic: true,
     });
+
+    slotSensorBody.multiplier = config.slots.multipliers[index];
 
     Composite.add(this.engine.world, slotSensorBody);
   }
@@ -123,13 +130,19 @@ export class Slots {
         const labels = [pair.bodyA.label, pair.bodyB.label];
 
         const isBallAndSlotEntryCollision =
-          labels.includes("Ball") && labels.includes("SlotEntry");
+          labels.includes(config.ball.label) &&
+          labels.includes(config.slots.sensor.label);
 
         if (!isBallAndSlotEntryCollision) {
           continue;
         }
 
-        // TODO: Determine which slot the ball fell into and emit an event
+        const sensor =
+          pair.bodyA.label === config.slots.sensor.label
+            ? pair.bodyA
+            : pair.bodyB;
+
+        console.log("multiplier", sensor.multiplier);
       }
     });
   }

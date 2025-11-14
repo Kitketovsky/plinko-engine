@@ -30,9 +30,10 @@ export const config = {
       label: "SlotWall",
     },
     sensor: {
-      height: 2,
+      height: 1,
       label: "SlotSensor",
     },
     slotAmount: 7,
+    multipliers: [10, 5, 3, 0.8, 3, 5, 10],
   },
 };
