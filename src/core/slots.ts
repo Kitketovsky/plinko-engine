@@ -10,14 +10,14 @@ interface Props {
 export class Slots {
   app: Application<Renderer>;
   engine: Matter.Engine;
-  slotsMultiplierData: Map<number, number>;
+
+  multiplierMap = new WeakMap<Matter.Body, number>();
 
   slotGap: number;
 
   constructor({ app, engine }: Props) {
     this.app = app;
     this.engine = engine;
-    this.slotsMultiplierData = new Map<number, number>();
 
     if (config.slots.slotAmount % 2 !== 1) {
       throw new Error("Amount of slots must be odd");
@@ -64,7 +64,7 @@ export class Slots {
 
     const slotWallBody = Bodies.rectangle(x, y, w, h, {
       isStatic: true,
-      label: "SlotWall",
+      label: config.slots.wall.label,
     });
 
     Composite.add(this.engine.world, slotWallBody);
@@ -89,10 +89,7 @@ export class Slots {
       isStatic: true,
     });
 
-    this.slotsMultiplierData.set(
-      slotSensorBody.id,
-      config.slots.multipliers[index]
-    );
+    this.multiplierMap.set(slotSensorBody, config.slots.multipliers[index]);
 
     Composite.add(this.engine.world, slotSensorBody);
   }
@@ -117,20 +114,12 @@ export class Slots {
   }
 
   createBottomBoundary() {
-    const thickness = 20;
     const width = this.app.screen.width;
     const height = this.app.screen.height;
 
-    const bottomWall = Bodies.rectangle(
-      width / 2,
-      height + thickness / 2,
-      width,
-      thickness,
-      {
-        isStatic: true,
-        label: "Boundary",
-      }
-    );
+    const bottomWall = Bodies.rectangle(width / 2, height, width, 1, {
+      isStatic: true,
+    });
 
     Composite.add(this.engine.world, bottomWall);
   }
@@ -155,13 +144,13 @@ export class Slots {
             ? pair.bodyA
             : pair.bodyB;
 
-        const multiplier = this.slotsMultiplierData.get(sensor.id);
+        const multiplier = this.multiplierMap.get(sensor);
 
         if (!multiplier) {
-          throw new Error(`No multiplier has been found in body ${sensor.id}`);
+          throw new Error(`No multiplier has been found for body ${sensor.id}`);
         }
 
-        console.log("body", sensor.id, "multiplier", multiplier);
+        // TODO: add to the global score with multiplier
       }
     });
   }

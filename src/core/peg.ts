@@ -1,38 +1,45 @@
-import { Graphics } from "pixi.js";
-import { Bodies, Composite, Engine, type Body } from "matter-js";
+import { EventEmitter, Graphics } from "pixi.js";
+import Matter, { Bodies, type Body } from "matter-js";
 import { config } from "../config";
 
 interface Props {
-  engine: Engine;
   x: number;
   y: number;
 }
 
-export class Peg {
+export class Peg extends EventEmitter {
   graphics: Graphics;
-  rigidBody: Body;
-  engine: Engine;
+  body: Body;
 
-  constructor({ x, y, engine }: Props) {
+  x: number;
+  y: number;
+
+  id: number;
+
+  constructor({ x, y }: Props) {
+    super();
+
+    this.x = x;
+    this.y = y;
+
     this.graphics = new Graphics()
-      .circle(x, y, config.pegs.radius)
+      .circle(this.x, this.y, config.pegs.radius)
       .fill(config.pegs.fillColor);
 
     // Set pivot to the center so scaling works correctly
-    this.graphics.pivot.set(x, y);
-    this.graphics.position.set(x, y);
+    this.graphics.pivot.set(this.x, this.y);
+    this.graphics.position.set(this.x, this.y);
 
-    this.rigidBody = Bodies.circle(x, y, config.pegs.radius, {
+    this.body = Bodies.circle(this.x, this.y, config.pegs.radius, {
       isStatic: true,
     });
 
-    this.rigidBody.label = config.pegs.label;
+    this.body.label = config.pegs.label;
 
-    // Store reference to graphics for animations
-    (this.rigidBody as any).graphics = this.graphics;
+    this.id = this.body.id;
+  }
 
-    this.engine = engine;
-
-    Composite.add(this.engine.world, this.rigidBody);
+  onCollision(velocity: Matter.Vector) {
+    this.emit("hit", { velocity, graphics: this.graphics });
   }
 }

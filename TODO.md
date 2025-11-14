@@ -21,4 +21,4 @@
 
 ## Fix
 
-- [] What are the ways to pass data without making custom properties to Matter.Body object?
+- [x] What are the ways to pass data without making custom properties to Matter.Body object? => EventEmitter

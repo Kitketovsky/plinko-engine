@@ -1,10 +1,10 @@
 import { Application, Renderer } from "pixi.js";
 import { Peg } from "./peg";
-import Matter, { Engine, Events } from "matter-js";
-import { sound } from "@pixi/sound";
-import gsap from "gsap";
-import popSoundSource from "./../assets/sounds/pop.mp3";
+import { type Body, Vector, Composite, Engine } from "matter-js";
 import { config } from "../config";
+import { SoundController } from "../controllers/sound-manager";
+import { AnimationController } from "../controllers/animation-controller";
+import { CollisionController } from "../controllers/collision-controller";
 
 interface Props {
   app: Application<Renderer>;
@@ -14,10 +14,25 @@ interface Props {
 export class Board {
   app: Application<Renderer>;
   engine: Engine;
+  pegs: Map<number, Peg>;
 
   constructor({ app, engine }: Props) {
     this.app = app;
     this.engine = engine;
+    this.pegs = new Map<number, Peg>();
+
+    this.createPegs();
+
+    const soundManager = new SoundController();
+    const animationController = new AnimationController();
+    const collisionController = new CollisionController(this.engine);
+
+    [...this.pegs.values()].forEach((peg) => {
+      soundManager.subscribeToPeg(peg);
+      animationController.subscribeToPeg(peg);
+    });
+
+    collisionController.register("ball-peg", this);
   }
 
   calculateBoardSize() {
@@ -56,76 +71,24 @@ export class Board {
         const peg = new Peg({
           x,
           y,
-          engine: this.engine,
         });
 
+        this.pegs.set(peg.id, peg);
+
         this.app.stage.addChild(peg.graphics);
+        Composite.add(this.engine.world, peg.body);
       }
     }
   }
 
-  createCollisionDetector() {
-    const popSound = sound.add("pop", popSoundSource);
+  handleCollision(bodyA: Body, bodyB: Body) {
+    const pegBody = bodyA.label === config.pegs.label ? bodyA : bodyB;
+    const peg = this.pegs.get(pegBody.id);
 
-    document.addEventListener(
-      "click",
-      async () => {
-        Events.on(this.engine, "collisionStart", (event) => {
-          const pairs = event.pairs;
+    if (!peg) return;
 
-          for (const pair of pairs) {
-            const labels = [pair.bodyA.label, pair.bodyB.label];
+    const velocity = Vector.sub(bodyA.velocity, bodyB.velocity);
 
-            const isBallAndPegCollision =
-              labels.includes(config.ball.label) &&
-              labels.includes(config.pegs.label);
-
-            if (!isBallAndPegCollision) {
-              continue;
-            }
-
-            const relativeVelocity = Matter.Vector.sub(
-              pair.bodyA.velocity,
-              pair.bodyB.velocity
-            );
-
-            // Sound
-            const speed = Matter.Vector.magnitude(relativeVelocity);
-            const maxSpeed = 10;
-            const volume = Math.min(speed / maxSpeed, 1);
-
-            popSound.play({ volume });
-
-            // Peg animation
-            const pegBody =
-              labels[0] === config.pegs.label ? pair.bodyA : pair.bodyB;
-
-            const pegGraphics = (pegBody as any).graphics;
-
-            if (pegGraphics) {
-              gsap.to(pegGraphics.scale, {
-                x: 1.4,
-                y: 1.4,
-                duration: 0.1,
-                ease: "power2.out",
-                yoyo: true,
-                repeat: 1,
-                onComplete: () => {
-                  pegGraphics.scale.set(1);
-                },
-              });
-            }
-
-            //
-          }
-        });
-      },
-      { once: true }
-    );
-  }
-
-  render() {
-    this.createPegs();
-    this.createCollisionDetector();
+    peg.onCollision(velocity);
   }
 }
