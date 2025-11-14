@@ -22,3 +22,4 @@
 ## Fix
 
 - [x] What are the ways to pass data without making custom properties to Matter.Body object? => EventEmitter
+- [x] Some of balls are out of bounds even with a boundary at the bottom

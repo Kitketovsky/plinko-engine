@@ -12,6 +12,7 @@
   "dependencies": {
     "@pixi/devtools": "^2.0.1",
     "@pixi/sound": "^6.0.1",
+    "@pixi/ui": "^2.2.7",
     "gsap": "^3.13.0",
     "matter-js": "^0.20.0",
     "pixi.js": "^8.8.1"

@@ -1,24 +1,13 @@
 import Matter, { Bodies, Composite } from "matter-js";
-import { Application, Graphics, Renderer, Text } from "pixi.js";
+import { Graphics, Text } from "pixi.js";
 import { config } from "../config";
-
-interface Props {
-  app: Application<Renderer>;
-  engine: Matter.Engine;
-}
+import { app, engine } from "./state";
 
 export class Slots {
-  app: Application<Renderer>;
-  engine: Matter.Engine;
-
   multiplierMap = new WeakMap<Matter.Body, number>();
-
   slotGap: number;
 
-  constructor({ app, engine }: Props) {
-    this.app = app;
-    this.engine = engine;
-
+  constructor() {
     if (config.slots.slotAmount % 2 !== 1) {
       throw new Error("Amount of slots must be odd");
     }
@@ -26,7 +15,7 @@ export class Slots {
     const { wall, slotAmount } = config.slots;
 
     this.slotGap =
-      (this.app.screen.width - wall.width / 2 - slotAmount + 1 * wall.width) /
+      (app.screen.width - wall.width / 2 - slotAmount + 1 * wall.width) /
       slotAmount;
 
     this.createBottomBoundary();
@@ -37,8 +26,13 @@ export class Slots {
   createSlots() {
     for (let i = 0; i <= config.slots.slotAmount; i++) {
       this.createSlotWall(i);
-      this.createSlotSensor(i);
-      this.renderMultiplierText(i);
+
+      const isLast = i == config.slots.slotAmount;
+
+      if (!isLast) {
+        this.createSlotSensor(i);
+        this.renderMultiplierText(i);
+      }
     }
   }
 
@@ -47,7 +41,7 @@ export class Slots {
     // but Graphics on default mode uses top-left x, y
 
     const x = index * this.slotGap;
-    const y = this.app.screen.height - config.slots.wall.height / 2;
+    const y = app.screen.height - config.slots.wall.height / 2;
     const w = config.slots.wall.width;
     const h = config.slots.wall.height;
 
@@ -60,20 +54,20 @@ export class Slots {
       .rect(x, y, w, h)
       .fill(0x0000ff);
 
-    this.app.stage.addChild(slotWallGraphics);
+    app.stage.addChild(slotWallGraphics);
 
     const slotWallBody = Bodies.rectangle(x, y, w, h, {
       isStatic: true,
       label: config.slots.wall.label,
     });
 
-    Composite.add(this.engine.world, slotWallBody);
+    Composite.add(engine.world, slotWallBody);
   }
 
   createSlotSensor(index: number) {
     const x =
       index * this.slotGap + config.slots.wall.width / 2 + this.slotGap / 2;
-    const y = this.app.screen.height - config.slots.wall.height + 5;
+    const y = app.screen.height - config.slots.wall.height + 5;
     const w = this.slotGap;
     const h = 2;
 
@@ -81,7 +75,7 @@ export class Slots {
       pivot: { x: this.slotGap / 2, y: 1 },
     }).rect(x, y, w, h);
 
-    this.app.stage.addChild(slotSensorGraphics);
+    app.stage.addChild(slotSensorGraphics);
 
     const slotSensorBody = Bodies.rectangle(x, y, w, h, {
       label: config.slots.sensor.label,
@@ -91,7 +85,7 @@ export class Slots {
 
     this.multiplierMap.set(slotSensorBody, config.slots.multipliers[index]);
 
-    Composite.add(this.engine.world, slotSensorBody);
+    Composite.add(engine.world, slotSensorBody);
   }
 
   renderMultiplierText(index: number) {
@@ -106,26 +100,28 @@ export class Slots {
 
     const x = index * this.slotGap + this.slotGap / 2;
 
-    const y = this.app.screen.height - (config.slots.wall.height / 100) * 60;
+    const y = app.screen.height - (config.slots.wall.height / 100) * 60;
 
     multiplierText.position.set(x, y);
 
-    this.app.stage.addChild(multiplierText);
+    app.stage.addChild(multiplierText);
   }
 
   createBottomBoundary() {
-    const width = this.app.screen.width;
-    const height = this.app.screen.height;
+    const w = app.screen.width;
+    const h = 10;
+    const x = app.screen.width / 2;
+    const y = app.screen.height + h / 2;
 
-    const bottomWall = Bodies.rectangle(width / 2, height, width, 1, {
+    const bottomBoundary = Bodies.rectangle(x, y, w, h, {
       isStatic: true,
     });
 
-    Composite.add(this.engine.world, bottomWall);
+    Composite.add(engine.world, bottomBoundary);
   }
 
   listenForBallDrops() {
-    Matter.Events.on(this.engine, "collisionStart", (event) => {
+    Matter.Events.on(engine, "collisionStart", (event) => {
       const pairs = event.pairs;
 
       for (const pair of pairs) {

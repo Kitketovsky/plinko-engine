@@ -1,31 +1,22 @@
-import { Application, Renderer } from "pixi.js";
 import { Peg } from "./peg";
-import { type Body, Vector, Composite, Engine } from "matter-js";
+import { type Body, Vector, Composite } from "matter-js";
 import { config } from "../config";
 import { SoundController } from "../controllers/sound-manager";
 import { AnimationController } from "../controllers/animation-controller";
 import { CollisionController } from "../controllers/collision-controller";
-
-interface Props {
-  app: Application<Renderer>;
-  engine: Engine;
-}
+import { engine, app } from "./state";
 
 export class Board {
-  app: Application<Renderer>;
-  engine: Engine;
   pegs: Map<number, Peg>;
 
-  constructor({ app, engine }: Props) {
-    this.app = app;
-    this.engine = engine;
+  constructor() {
     this.pegs = new Map<number, Peg>();
 
     this.createPegs();
 
     const soundManager = new SoundController();
     const animationController = new AnimationController();
-    const collisionController = new CollisionController(this.engine);
+    const collisionController = new CollisionController(engine);
 
     [...this.pegs.values()].forEach((peg) => {
       soundManager.subscribeToPeg(peg);
@@ -50,7 +41,7 @@ export class Board {
   createPegs() {
     const pegDiameter = config.pegs.radius * 2;
     const totalPegWidth = pegDiameter * config.board.cols;
-    const availableGapSpace = this.app.screen.width - totalPegWidth;
+    const availableGapSpace = app.screen.width - totalPegWidth;
     const gapX = availableGapSpace / (config.board.cols - 1);
     const gapY = config.board.gapY;
 
@@ -75,8 +66,8 @@ export class Board {
 
         this.pegs.set(peg.id, peg);
 
-        this.app.stage.addChild(peg.graphics);
-        Composite.add(this.engine.world, peg.body);
+        app.stage.addChild(peg.graphics);
+        Composite.add(engine.world, peg.body);
       }
     }
   }
